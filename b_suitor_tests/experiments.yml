@@ -1,0 +1,138 @@
+# TODO - can networkit be build and installed as a lib within the build step of this repo?
+builds:
+  - name: ba-dyn-b-suitor
+    git: 'https://github.com/friedagerharz/bachelorarbeit'
+    configure:
+      - args:
+        - 'cmake'
+        - '. -Bbuild'
+    # TODO check - cd build first?
+    compile:
+      - args:
+        - 'make'
+        - '-j@PARALLELISM@'
+    # requires:
+    #   - networkit-dyn-b-suitor
+
+  # # TODO check - how to build w/ specific branch (specified in revision below?)
+  # - name: networkit-dyn-b-suitor
+  #   git: https://github.com/friedagerharz/networkit
+  #   recursive-clone: true
+  #   configure:
+  #     - args:
+  #         - 'cmake'
+  #         - '. -Bbuild'
+  #   # TODO check - cd build first?
+  #   compile:
+  #     - args:
+  #         - 'make'
+  #         - '-j@PARALLELISM@'
+  #   # use as lib for ba-dyn-b-suitor (TODO check)
+  #   install:
+  #     - args:
+  #         - 'make'
+  #         - 'install'
+
+revisions:
+  - name: ba-main
+    build_version:
+      'ba-dyn-b-suitor': 'b54b6ec0b35b49d301e0fbfdf7799b1f57869955' # same as build name?!
+  # - name: nwk-frieda-dynbs
+  #   build_version:
+  #     'networkit-dyn-b-suitor': '38c6ebf2e71957c6077c2c7376880f0f0cac1fae' # same as build name?!
+
+# TODO check - can 'simex instances install' run download_graph_files.py per instance or for all instances without generator?
+# Downloaded instances from suite sparse need to be identified, selected, extracted, etc. first..
+# This cannot be done with instances method: url?!
+instances:
+  - repo: local
+    extensions:
+       - mtx
+    items:
+      - Reuters911
+      - astro-ph
+      - cond-mat-2005
+      - turon_m
+      - gas_sensor
+      - Fault_639
+      - mouse_gene
+      - bone010
+
+# TODO check - can dyn_b_suitor_comp be run like this from remote repo?
+experiments:
+  - name: dynamic-b-suitor
+    use_builds: [ba-dyn-b-suitor]
+    args: ['./build/dyn_b_suitor_comp', '@INSTANCE@', '@EXTRA_ARGS@']
+    stdout: out
+    repeat: 1 # TODO - set to a larger number to calculate the average
+
+# need prefix (1_, 2_, 3_) because of lexicographical sorting of the cross product elements
+variants:
+  - axis: 'operation'
+    items:
+      - name: '1_op=insert'
+        extra_args: ['insert']
+      # - name: '1_op=remove'
+      #   extra_args: ['remove']
+
+  - axis: 'batch_s'
+    items:
+      - name: '2_batch_s=10e0'
+        extra_args: ['1']
+      # - name: '2_batch_s=10e1'
+      #   extra_args: ['10']
+      # - name: '2_batch_s=10e2'
+      #   extra_args: ['100']
+      # - name: '2_batch_s=10e3'
+      #   extra_args: ['1000']
+      # - name: '2_batch_s=10e4'
+      #   extra_args: ['10000']
+
+  - axis: 'b_val'
+    items:
+      - name: '3_b_val=1'
+        extra_args: ['1']
+      # - name: '3_b_val=2'
+      #   extra_args: ['2']
+      # - name: '3_b_val=3'
+      #   extra_args: ['3']
+      # - name: '3_b_val=4'
+      #   extra_args: ['4']
+      # - name: '3_b_val=5'
+      #   extra_args: ['5']
+
+
+# Cannot be used as generator creates instance files from /dev/stdout
+# instances:
+#   - generator:
+#       args: ['./download_graph.py', 'Pajek/Reuters911']
+#     items:
+#       - Reuters911
+#   - generator:
+#       args: ['./download_graph.py', 'Newman/astro-ph']
+#     items:
+#       - astro-ph
+#   - generator:
+#       args: ['./download_graph.py', 'Newman/cond-mat-2005']
+#     items:
+#       - cond-mat-2005
+#   - generator:
+#       args: ['./download_graph.py', 'GHS_indef/turon_m']
+#     items:
+#       - turon_m
+#   - generator:
+#       args: ['./download_graph.py', 'Oberwolfach/gas_sensor']
+#     items:
+#       - gas_sensor
+#   - generator:
+#       args: ['./download_graph.py', 'Janna/Fault_639']
+#     items:
+#       - Fault_639
+#   - generator:
+#       args: ['./download_graph.py', 'Belcastro/mouse_gene']
+#     items:
+#       - mouse_gene
+#   - generator:
+#       args: ['./download_graph.py', 'Oberwolfach/bone010']
+#     items:
+#       - bone010
